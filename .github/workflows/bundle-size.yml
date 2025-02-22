@@ -93,7 +93,7 @@ jobs:
         with:
           header: Size Report
           message-id: size-report-${{ github.event.pull_request.number }}
-          edit-mode: replace
+          edit-mode: recreate
           refresh-message-position: true 
           message: |
             ## Size Report
