@@ -89,7 +89,7 @@ jobs:
           (fromJson(steps.install-size-diff.outputs.diff || '0') <= -10))
         uses: mshick/add-pr-comment@v2
         env:
-          GITHUB_TOKEN: ${{ secrets.TSCIRCUIT_BOT_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           header: Size Report
           message-id: size-report-${{ github.event.pull_request.number }}
@@ -113,5 +113,5 @@ jobs:
 
             (aside)
             ```
-          # proxy-url: https://add-pr-comment-proxy-tscircuit.vercel.app/api
+          proxy-url: https://add-pr-comment-proxy-tscircuit.vercel.app/api
           allow-repeats: false
