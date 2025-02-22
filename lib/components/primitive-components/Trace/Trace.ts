@@ -74,6 +74,16 @@ export class Trace
 
   constructor(props: z.input<typeof traceProps>) {
     super(props)
+    console.log("props", props)
+    if ("from" in props && props.from === undefined) {
+      // First capture if the port is undefined
+      console.log("parent", this.parent)
+      const parentName = this.parent?.props?.name || "Unknown"
+      console.log(`Port reference is undefined on component "${parentName}"`)
+      throw new Error(
+        `Port reference is undefined on component "${parentName}"`,
+      )
+    }
     this._portsRoutedOnPcb = []
   }
 
@@ -128,10 +138,11 @@ export class Trace
       } {
     const { db } = this.root!
     const { _parsedProps: props, parent } = this
-
+    console.log("parent", parent)
     if (!parent) throw new Error("Trace has no parent")
 
     const portSelectors = this.getTracePortPathSelectors()
+    console.log("portSelectors", portSelectors)
 
     const portsWithSelectors = portSelectors.map((selector) => ({
       selector,
@@ -139,6 +150,7 @@ export class Trace
         (this.getSubcircuit().selectOne(selector, { type: "port" }) as Port) ??
         null,
     }))
+    console.log("portsWithSelectors", portsWithSelectors)
 
     for (const { selector, port } of portsWithSelectors) {
       if (!port) {
@@ -147,6 +159,11 @@ export class Trace
         if (!targetComponent) {
           this.renderError(`Could not find port for selector "${selector}"`)
         } else {
+          const availablePorts = targetComponent.children
+            .filter((c) => c.componentName === "Port")
+            .map((c) => c.getNameAndAliases().join(","))
+            .join(", ")
+          console.log("Available ports", availablePorts)
           this.renderError(
             `Could not find port for selector "${selector}" (did you forget to include the pin name?)\nsearched component ${targetComponent.getString()}, which has ports: ${targetComponent.children
               .filter((c) => c.componentName === "Port")
@@ -155,6 +172,10 @@ export class Trace
               )
               .join(" & ")}`,
           )
+          // this.renderError(
+          //   `Port "${selector.split(' > ')[1]}" does not exist on component "${targetComponent.props.name}". ` +
+          //   `Available ports are: ${availablePorts || 'none'}`
+          // )
         }
       }
     }

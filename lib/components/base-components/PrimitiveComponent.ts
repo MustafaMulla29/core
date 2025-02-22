@@ -112,10 +112,17 @@ export abstract class PrimitiveComponent<
 
   constructor(props: z.input<ZodProps>) {
     super(props)
+    console.log("Props before validation:", props)
     this.children = []
     this.childrenPendingRemoval = []
     this.props = props ?? {}
     this.externallyAddedAliases = []
+
+    // if (props?.from === undefined && this.lowercaseComponentName === 'trace') {
+    //   console.log()
+    //   throw new Error(`Invalid prop: 'from' property is undefined in ${this.lowercaseComponentName}`)
+    // }
+
     const parsePropsResult = this.config.zodProps.safeParse(props ?? {})
     if (parsePropsResult.success) {
       this._parsedProps = parsePropsResult.data as z.infer<ZodProps>
