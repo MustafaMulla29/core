@@ -76,25 +76,32 @@ jobs:
       - name: Calculate install size difference
         id: install-size-diff
         run: |
-          base_size=$(echo "${{ steps.base-install-size.outputs.base }}" | grep -oE '[0-9]+(\.[0-9]+)?')
-          pr_size=$(echo "${{ steps.pr-install-size.outputs.pr }}" | grep -oE '[0-9]+(\.[0-9]+)?')
-          diff=$(echo "$pr_size - $base_size" | bc)
+          base_size=$(echo "${{ steps.base-install-size.outputs.base }}" | sed 's/[^0-9.]//g')
+          pr_size=$(echo "${{ steps.pr-install-size.outputs.pr }}" | sed 's/[^0-9.]//g')
+          diff=$(echo "$pr_size - $base_size" | bc -l)
           echo "diff=$diff" >> $GITHUB_OUTPUT
 
+      - name: Debug Outputs
+        run: |
+          echo "Base Bundle Size: ${{ steps.base-bundle-size.outputs.base }}"
+          echo "PR Bundle Size: ${{ steps.pr-bundle-size.outputs.pr }}"
+          echo "Base Install Size: ${{ steps.base-install-size.outputs.base }}"
+          echo "PR Install Size: ${{ steps.pr-install-size.outputs.pr }}"
       - name: Conditionally Update PR Comment
-        if: > 
-          ((fromJson(steps.bundle-size-diff.outputs.diff || '0') >= 10) || 
-          (fromJson(steps.bundle-size-diff.outputs.diff || '0') <= -10) || 
-          (fromJson(steps.install-size-diff.outputs.diff || '0') >= 10) || 
-          (fromJson(steps.install-size-diff.outputs.diff || '0') <= -10))
+        if: |
+          steps.bundle-size-diff.outputs.diff != '' &&
+          steps.install-size-diff.outputs.diff != '' &&
+          (
+            fromJson(steps.bundle-size-diff.outputs.diff) >= 10 ||
+            fromJson(steps.bundle-size-diff.outputs.diff) <= -10 ||
+            fromJson(steps.install-size-diff.outputs.diff) >= 10 ||
+            fromJson(steps.install-size-diff.outputs.diff) <= -10
+          )
         uses: mshick/add-pr-comment@v2
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.TSCIRCUIT_BOT_GITHUB_TOKEN }}
         with:
-          header: Size Report
           message-id: size-report-${{ github.event.pull_request.number }}
-          edit-mode: replace
-          refresh-message-position: true 
           message: |
             ## Size Report
             ### Bundle Size
@@ -103,15 +110,13 @@ jobs:
             - Difference: ${{ steps.bundle-size-diff.outputs.diff }} KB
 
             ### Install Size
-            - Base branch size: ${{ steps.base-install-size.outputs.base }} KB
-            - PR branch size: ${{ steps.pr-install-size.outputs.pr }} KB
-            - Difference: ${{ steps.install-size-diff.outputs.diff }} KB
+            - Base branch size: ${{ steps.base-install-size.outputs.base }} MB
+            - PR branch size: ${{ steps.pr-install-size.outputs.pr }} MB
+            - Difference: ${{ steps.install-size-diff.outputs.diff }} MB
 
             ### Full Howfat Output (PR Branch)
             ```
             ${{ steps.pr-install-size.outputs.full_output }}
-
-            (aside)
             ```
           proxy-url: https://add-pr-comment-proxy-tscircuit.vercel.app/api
           allow-repeats: false
