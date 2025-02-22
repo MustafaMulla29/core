@@ -76,8 +76,8 @@ jobs:
       - name: Calculate install size difference
         id: install-size-diff
         run: |
-          base_size=${{ steps.base-install-size.outputs.base }}
-          pr_size=${{ steps.pr-install-size.outputs.pr }}
+          base_size=$(echo "${{ steps.base-install-size.outputs.base }}" | grep -oE '[0-9]+(\.[0-9]+)?')
+          pr_size=$(echo "${{ steps.pr-install-size.outputs.pr }}" | grep -oE '[0-9]+(\.[0-9]+)?')
           diff=$(echo "$pr_size - $base_size" | bc)
           echo "diff=$diff" >> $GITHUB_OUTPUT
       - name: Debug Outputs
@@ -86,18 +86,20 @@ jobs:
           echo "PR Bundle Size: ${{ steps.pr-bundle-size.outputs.pr }}"
           echo "Base Install Size: ${{ steps.base-install-size.outputs.base }}"
           echo "PR Install Size: ${{ steps.pr-install-size.outputs.pr }}"
-
       - name: Conditionally Update PR Comment
-        if: |
-          steps.bundle-size-diff.outputs.diff | tonumber >= 10
-          or steps.bundle-size-diff.outputs.diff | tonumber <= -10
-          or steps.install-size-diff.outputs.diff | tonumber >= 10
-          or steps.install-size-diff.outputs.diff | tonumber <= -10 
+        if: > 
+          ((fromJson(steps.bundle-size-diff.outputs.diff || '0') >= 10) || 
+          (fromJson(steps.bundle-size-diff.outputs.diff || '0') <= -10) || 
+          (fromJson(steps.install-size-diff.outputs.diff || '0') >= 10) || 
+          (fromJson(steps.install-size-diff.outputs.diff || '0') <= -10))
         uses: mshick/add-pr-comment@v2
         env:
           GITHUB_TOKEN: ${{ secrets.TSCIRCUIT_BOT_GITHUB_TOKEN }}
         with:
           header: Size Report
+          message-id: size-report-${{ github.event.pull_request.number }}
+          edit-mode: replace
+          refresh-message-position: true 
           message: |
             ## Size Report
             ### Bundle Size
