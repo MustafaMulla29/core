@@ -94,7 +94,7 @@ jobs:
           header: Size Report
           message-id: size-report-${{ github.event.pull_request.number }}
           edit-mode: replace
-          # refresh-message-position: true 
+          refresh-message-position: true 
           message: |
             ## Size Report
             ### Bundle Size
