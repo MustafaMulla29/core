@@ -97,7 +97,7 @@ jobs:
           refresh-message-position: true 
           message: |
             ## Size Report
-            ### Bundle Size
+            ### Bundle Size 
             - Base branch size: ${{ steps.base-bundle-size.outputs.base }} KB
             - PR branch size: ${{ steps.pr-bundle-size.outputs.pr }} KB
             - Difference: ${{ steps.bundle-size-diff.outputs.diff }} KB
