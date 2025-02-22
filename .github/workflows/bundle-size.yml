@@ -82,11 +82,12 @@ jobs:
           echo "diff=$diff" >> $GITHUB_OUTPUT
 
       - name: Conditionally Update PR Comment
-        if: |
-          steps.bundle-size-diff.outputs.diff | tonumber >= 10
-          or steps.bundle-size-diff.outputs.diff | tonumber <= -10
-          or steps.install-size-diff.outputs.diff | tonumber >= 10
-          or steps.install-size-diff.outputs.diff | tonumber <= -10 
+        if: > 
+          ((steps.bundle-size-diff.outputs.diff != '') && 
+          ((steps.bundle-size-diff.outputs.diff | int) >= 10 || 
+          (steps.bundle-size-diff.outputs.diff | int) <= -10 || 
+          (steps.install-size-diff.outputs.diff | int) >= 10 || 
+          (steps.install-size-diff.outputs.diff | int) <= -10))
         uses: mshick/add-pr-comment@v2
         env:
           GITHUB_TOKEN: ${{ secrets.TSCIRCUIT_BOT_GITHUB_TOKEN }}
