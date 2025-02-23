@@ -76,11 +76,10 @@ jobs:
       - name: Calculate install size difference
         id: install-size-diff
         run: |
-          base_size=${{ steps.base-install-size.outputs.base }}
-          pr_size=${{ steps.pr-install-size.outputs.pr }}
+          base_size=$(echo "${{ steps.base-install-size.outputs.base }}" | grep -oE '[0-9]+(\.[0-9]+)?')
+          pr_size=$(echo "${{ steps.pr-install-size.outputs.pr }}" | grep -oE '[0-9]+(\.[0-9]+)?')
           diff=$(echo "$pr_size - $base_size" | bc)
           echo "diff=$diff" >> $GITHUB_OUTPUT
-
       - name: Conditionally Update PR Comment
         if: > 
           ((fromJson(steps.bundle-size-diff.outputs.diff || '0') >= 10) || 
@@ -92,6 +91,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.TSCIRCUIT_BOT_GITHUB_TOKEN }}
         with:
           header: Size Report
+          message-id: size-report-${{ github.event.pull_request.number }}
+          edit-mode: replace
           message: |
             ## Size Report
             ### Bundle Size
