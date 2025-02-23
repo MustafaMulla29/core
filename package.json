@@ -66,6 +66,7 @@
     "react-reconciler-18": "npm:react-reconciler@0.29.2",
     "schematic-symbols": "^0.0.121",
     "transformation-matrix": "^2.16.1",
+    "chalk": "^5.4.1",
     "date-fns": "^4.1.0",
     "lodash": "^4.17.21",
     "sonner": "^2.0.1",
