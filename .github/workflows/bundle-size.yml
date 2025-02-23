@@ -97,7 +97,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.TSCIRCUIT_BOT_GITHUB_TOKEN }}
         with:
           header: Size Report
-          message-id: size-report-${{ github.event.pull_request.number }}
+          message-id: size-report
           edit-mode: replace
           message: |
             ## Size Report
