@@ -4,6 +4,7 @@ import { Group } from "../primitive-components/Group/Group"
 import { checkEachPcbTraceNonOverlapping } from "@tscircuit/checks"
 import type { RenderPhase } from "../base-components/Renderable"
 import { getDescendantSubcircuitIds } from "../../utils/autorouting/getAncestorSubcircuitIds"
+import { clipHolesOnBoardBoundary } from "../../utils/clip-holes-on-board-boundary"
 
 export class Board extends Group<typeof boardProps> {
   pcb_board_id: string | null = null
@@ -126,6 +127,9 @@ export class Board extends Group<typeof boardProps> {
       height: finalHeight,
       center,
     })
+
+        // After board dimensions are finalized, clip holes that intersect with boundaries
+    clipHolesOnBoardBoundary(this.root!.db, this.pcb_board_id)
   }
 
   /**
@@ -227,6 +231,14 @@ export class Board extends Group<typeof boardProps> {
 
   _computePcbGlobalTransformBeforeLayout(): Matrix {
     return identity()
+  }
+
+  doInitialPcbLayout() {
+    if (this.root?.pcbDisabled) return
+    if (!this.pcb_board_id) return
+
+    // Clip holes that intersect with board boundaries after all primitives are rendered
+    clipHolesOnBoardBoundary(this.root!.db, this.pcb_board_id)
   }
 
   doInitialPcbDesignRuleChecks() {
