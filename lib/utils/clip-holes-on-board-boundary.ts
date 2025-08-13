@@ -68,6 +68,11 @@ function getHoleClipResult(hole: PcbHole, board: PcbBoard): ClipResult {
   // Calculate board boundaries
   const boardBounds = getBoardBounds(board)
   
+  // Check if hole is completely outside the board
+  if (isCircleCompletelyOutside(holeCenter, radius, boardBounds)) {
+    return { shouldClip: false } // Keep holes completely outside as-is
+  }
+  
   // Check if hole intersects with any board edge
   const intersectsEdge = doesCircleIntersectRectangleBoundary(
     holeCenter,
@@ -85,14 +90,6 @@ function getHoleClipResult(hole: PcbHole, board: PcbBoard): ClipResult {
     radius,
     boardBounds
   )
-  
-  // If the clipped geometry has no points, the hole is completely outside
-  if (clippedGeometry.points.length === 0) {
-    return {
-      shouldClip: true,
-      clippedGeometry: undefined // No geometry to create (effectively removes the hole)
-    }
-  }
   
   return {
     shouldClip: true,
@@ -118,6 +115,22 @@ function getBoardBounds(board: PcbBoard): {
     top: board.center.y + halfHeight,
     bottom: board.center.y - halfHeight,
   }
+}
+
+/**
+ * Check if a circle is completely outside the board boundaries
+ */
+function isCircleCompletelyOutside(
+  center: { x: number; y: number },
+  radius: number,
+  bounds: { left: number; right: number; top: number; bottom: number }
+): boolean {
+  return (
+    center.x + radius < bounds.left ||
+    center.x - radius > bounds.right ||
+    center.y + radius < bounds.bottom ||
+    center.y - radius > bounds.top
+  )
 }
 
 /**
